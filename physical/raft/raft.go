@@ -156,6 +156,10 @@ type RaftBackend struct {
 	// However, only active node will have a "running" autopilot.
 	autopilot *autopilot.Autopilot
 
+	// delegate is the autopilot delegate that will be used to interact with the
+	// autopilot library.
+	delegate *Delegate
+
 	// autopilotConfig represents the configuration required to instantiate autopilot.
 	autopilotConfig *AutopilotConfig
 
@@ -1339,6 +1343,10 @@ func (b *RaftBackend) AddPeer(ctx context.Context, peerID, clusterAddr string, v
 	b.logger.Debug("adding server to raft via autopilot", "id", peerID)
 	if !voter {
 		b.logger.Debug("adding non-voter to raft via autopilot", "id", peerID)
+		err := b.delegate.AddNonVoter(raft.ServerID(peerID))
+		if err != nil {
+			return err
+		}
 	}
 	return b.autopilot.AddServer(&autopilot.Server{
 		ID:          raft.ServerID(peerID),
