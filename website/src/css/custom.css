@@ -172,3 +172,18 @@ div.package-repo {
     justify-content: flex-end;
   }
 }
+
+/*
+ * Themed asset toggle between light and dark modes.
+ */
+.theme-asset--dark {
+  display: none;
+}
+
+[data-theme="dark"] .theme-asset--light {
+  display: none;
+}
+
+[data-theme="dark"] .theme-asset--dark {
+  display: inline;
+}
