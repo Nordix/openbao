@@ -26,18 +26,19 @@ access the Kubernetes API.
 ### Parameters
 
 - `kubernetes_host` `(string: <required>)` - Host must be a host string, a host:port pair, or a URL to the base of the Kubernetes API server.
-- `kubernetes_ca_cert` `(string: "")` - PEM encoded CA cert for use by the TLS client used to talk with the Kubernetes API. NOTE: Every line must end with a newline: `\n`
-  If not set, the local CA cert will be used if running in a Kubernetes pod.
+- `disable_local_ca_jwt` `(bool: false)` - By default, when running in a Kubernetes pod, the CA certificate and service account token are read from `/var/run/secrets/kubernetes.io/serviceaccount/`. Set to `true` to prevent this.
+- `kubernetes_ca_cert` `(string: "")` - PEM encoded CA cert for use by the TLS client used to talk with the Kubernetes API. Every line must end with a newline: `\n`.
+  If unset and `disable_local_ca_jwt` is `false`, the CA cert is read from `/var/run/secrets/kubernetes.io/serviceaccount/ca.crt`.
+  If unset and `disable_local_ca_jwt` is `true`, the system CA certificates are used.
 - `token_reviewer_jwt` `(string: "")` <a name="token_reviewer_jwt"></a> - A service account JWT used to access the TokenReview
-  API to validate other JWTs during login. If not set,
-  the local service account token is used if running in a Kubernetes pod, otherwise
-  the JWT submitted in the login payload will be used to access the Kubernetes TokenReview API.
+  API to validate other JWTs during login.
+  If unset and `disable_local_ca_jwt` is `false`, the token is read from `/var/run/secrets/kubernetes.io/serviceaccount/token`. If the file does not exist, the JWT submitted in the login payload is used instead.
+  If unset and `disable_local_ca_jwt` is `true`, the JWT submitted in the login payload is used.
 - `pem_keys` `(array: [])` - Optional list of PEM-formatted public keys or certificates
   used to verify the signatures of Kubernetes service account
   JWTs. If a certificate is given, its public key will be
   extracted. Not every installation of Kubernetes exposes these
   keys.
-- `disable_local_ca_jwt` `(bool: false)` - Disable defaulting to the local CA cert and service account JWT when running in a Kubernetes pod.
 
 ### Deprecated parameters
 
@@ -50,17 +51,6 @@ The following fields have been deprecated and will be removed in a future releas
 - `disable_iss_validation` `(bool: true)` **Deprecated** Disable JWT issuer validation. Allows to skip ISS validation.
 - `issuer` `(string: "")` <a name="issuer"></a> **Deprecated** Optional JWT issuer. If no issuer is specified, then this plugin will use `kubernetes/serviceaccount` as the default issuer.
 See [these instructions](../../auth/kubernetes.mdx#discovering-the-service-account-issuer) for looking up the issuer for a given Kubernetes cluster.
-
-### Caveats
-
-If OpenBao is running in a Kubernetes Pod, the `kubernetes_ca_cert` and
-`token_reviewer_jwt` parameters will automatically default to the local CA cert
-(`/var/run/secrets/kubernetes.io/serviceaccount/ca.crt`) and local service
-account JWT (`/var/run/secrets/kubernetes.io/serviceaccount/token`). This
-behavior may be disabled by setting `disable_local_ca_jwt` to `true`.
-
-When OpenBao is running in a non-Kubernetes environment, either
-`kubernetes_ca_cert` or `pem_keys` must be set by the user.
 
 ### Sample payload
 
